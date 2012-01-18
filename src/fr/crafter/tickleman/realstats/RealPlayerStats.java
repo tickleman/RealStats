@@ -9,6 +9,7 @@ import java.util.logging.Level;
 
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.entity.CraftBlaze;
+import org.bukkit.craftbukkit.entity.CraftBoat;
 import org.bukkit.craftbukkit.entity.CraftCaveSpider;
 import org.bukkit.craftbukkit.entity.CraftChicken;
 import org.bukkit.craftbukkit.entity.CraftCow;
@@ -16,6 +17,7 @@ import org.bukkit.craftbukkit.entity.CraftCreeper;
 import org.bukkit.craftbukkit.entity.CraftEnderman;
 import org.bukkit.craftbukkit.entity.CraftGhast;
 import org.bukkit.craftbukkit.entity.CraftMagmaCube;
+import org.bukkit.craftbukkit.entity.CraftMinecart;
 import org.bukkit.craftbukkit.entity.CraftMushroomCow;
 import org.bukkit.craftbukkit.entity.CraftPig;
 import org.bukkit.craftbukkit.entity.CraftPigZombie;
@@ -30,33 +32,51 @@ import org.bukkit.craftbukkit.entity.CraftWolf;
 import org.bukkit.craftbukkit.entity.CraftZombie;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Vehicle;
 
 //##################################################################################### PlayerStats
 public class RealPlayerStats
 {
 
-
 	private Player player;
 
-	public static final int BREAK = 1;
-	public static final int FEED = 2;
-	public static final int PLACE = 3;
-	public static final int TAME  = 4;
+	public static final int BREAK       = 1;
+	public static final int FEED        = 2;
+	public static final int LEFT_CLICK  = 3;
+	public static final int MOVING      = 4;
+	public static final int PLACE       = 5;
+	public static final int RIGHT_CLICK = 6;
+	public static final int TAME        = 7;
+
+	public static final int MOVING_BOAT   = 1;
+	public static final int MOVING_CART   = 2;
+	public static final int MOVING_SNEAK  = 3;
+	public static final int MOVING_SPRINT = 4;
+	public static final int MOVING_WALK   = 5;
+
+	public static final int CREATURES_COUNT = 21;
+	public static final int VEHICLES_COUNT  = 6;
 
 	private boolean mustSave = false;
-	private int[] breakBlocks;
-	private int[] feedCreatures;
-	private int[] placeBlocks;
-	private int[] tameCreatures;
+	private long[] breakBlocks;
+	private long[] feedCreatures;
+	private long[] leftClickBlocks;
+	private long[] movingDistances;
+	private long[] placeBlocks;
+	private long[] rightClickBlocks;
+	private long[] tameCreatures;
 
 	//----------------------------------------------------------------------------------- PlayerStats
 	public RealPlayerStats(RealStatsPlugin plugin, Player player)
 	{
-		this.player   = player;
-		breakBlocks   = new int[net.minecraft.server.Block.byId.length + 1];
-		placeBlocks   = new int[net.minecraft.server.Block.byId.length + 1];
-		feedCreatures = new int[getCreaturesCount()];
-		tameCreatures = new int[getCreaturesCount()];
+		this.player      = player;
+		breakBlocks      = new long[net.minecraft.server.Block.byId.length + 1];
+		feedCreatures    = new long[CREATURES_COUNT];
+		leftClickBlocks  = new long[net.minecraft.server.Block.byId.length + 1];
+		movingDistances  = new long[VEHICLES_COUNT];
+		placeBlocks      = new long[net.minecraft.server.Block.byId.length + 1];
+		rightClickBlocks = new long[net.minecraft.server.Block.byId.length + 1];
+		tameCreatures    = new long[CREATURES_COUNT];
 		load(plugin);
 	}
 
@@ -67,12 +87,6 @@ public class RealPlayerStats
 			save(plugin);
 			mustSave = false;
 		}
-	}
-
-	//----------------------------------------------------------------------------- getCreaturesCount
-	public int getCreaturesCount()
-	{
-		return 21;
 	}
 
 	//--------------------------------------------------------------------------------- getCreatureId
@@ -103,11 +117,34 @@ public class RealPlayerStats
 		return 0;
 	}
 
+	//---------------------------------------------------------------------------------- getVehicleId
+	public int getVehicleId(Class<? extends Entity> vehicleClass)
+	{
+		if (vehicleClass.equals(CraftBoat.class))     return MOVING_BOAT;
+		if (vehicleClass.equals(CraftMinecart.class)) return MOVING_CART;
+		return 0;
+	}
+
+	//----------------------------------------------------------------------------------------- getXp
+	public long getXp(int action, int typeId)
+	{
+		if      (action == BREAK)        return breakBlocks      [typeId];
+		else if (action == LEFT_CLICK)   return leftClickBlocks  [typeId];
+		else if (action == FEED)         return feedCreatures    [typeId];
+		else if (action == MOVING)       return movingDistances  [typeId];
+		else if (action == PLACE)        return placeBlocks      [typeId];
+		else if (action == RIGHT_CLICK)  return rightClickBlocks [typeId];
+		else if (action == TAME)         return tameCreatures    [typeId];
+		return 0;
+	}
+
 	//------------------------------------------------------------------------------------- increment
 	public void increment(int action, Block block)
 	{
-		if      (action == BREAK) breakBlocks[block.getTypeId()] ++;
-		else if (action == PLACE) placeBlocks[block.getTypeId()] ++;
+		if      (action == BREAK)       breakBlocks      [block.getTypeId()] ++;
+		else if (action == LEFT_CLICK)  leftClickBlocks  [block.getTypeId()] ++;
+		else if (action == PLACE)       placeBlocks      [block.getTypeId()] ++;
+		else if (action == RIGHT_CLICK) rightClickBlocks [block.getTypeId()] ++;
 		mustSave = true;
 	}
 
@@ -119,14 +156,18 @@ public class RealPlayerStats
 		mustSave = true;
 	}
 
-	//----------------------------------------------------------------------------------------- getXp
-	public int getXp(int action, int typeId)
+	//------------------------------------------------------------------------------------- increment
+	public void increment(int action, Vehicle vehicle, long duration)
 	{
-		if      (action == BREAK) return breakBlocks[typeId];
-		else if (action == FEED)  return feedCreatures[typeId];
-		else if (action == PLACE) return placeBlocks[typeId];
-		else if (action == TAME)  return tameCreatures[typeId];
-		return 0;
+		if (action == MOVING) movingDistances[getVehicleId(vehicle.getClass())] += duration;
+		mustSave = true;
+	}
+
+	//------------------------------------------------------------------------------------- increment
+	public void increment(int action, int typeId, long duration)
+	{
+		if (action == MOVING) movingDistances[typeId] += duration;
+		mustSave = true;
 	}
 
 	//------------------------------------------------------------------------------------------ load
@@ -138,30 +179,19 @@ public class RealPlayerStats
 			);
 			String buffer;
 			String[] list;
-			// breakBlockCounts
 			while ((buffer = reader.readLine()) != null) {
 				int equalPos = buffer.indexOf('=');
 				if (equalPos > 0) {
 					String key = buffer.substring(0, equalPos);
 					buffer = buffer.substring(key.length() + 1);
 					list = buffer.split(";");
-					if (key.equals("break")) {
-						for (int i = 0; i < Math.min(breakBlocks.length, list.length); i++) {
-							breakBlocks[i] = Integer.parseInt(list[i]);
-						}
-					} else if (key.equals("feed")) {
-						for (int i = 0; i < Math.min(feedCreatures.length, list.length); i++) {
-							feedCreatures[i] = Integer.parseInt(list[i]);
-						}
-					} else if (key.equals("place")) {
-						for (int i = 0; i < Math.min(placeBlocks.length, list.length); i++) {
-							placeBlocks[i] = Integer.parseInt(list[i]);
-						}
-					} else if (key.equals("tame")) {
-						for (int i = 0; i < Math.min(tameCreatures.length, list.length); i++) {
-							tameCreatures[i] = Integer.parseInt(list[i]);
-						}
-					}
+					loadLongList(key, list, "break",      breakBlocks);
+					loadLongList(key, list, "feed",       feedCreatures);
+					loadLongList(key, list, "leftclick",  leftClickBlocks);
+					loadLongList(key, list, "moving",     movingDistances);
+					loadLongList(key, list, "place",      placeBlocks);
+					loadLongList(key, list, "rightclick", rightClickBlocks);
+					loadLongList(key, list, "tame",       tameCreatures);
 				}
 			}
 			reader.close();
@@ -173,6 +203,16 @@ public class RealPlayerStats
 		}
 	}
 
+	//---------------------------------------------------------------------------------- loadLongList
+	public void loadLongList(String key, String[] readList, String listName, long[] intList)
+	{
+		if (key.equals(listName)) {
+			for (int i = 0; i < Math.min(intList.length, readList.length); i++) {
+				intList[i] = Long.parseLong(readList[i]);
+			}
+		}
+	}
+
 	//------------------------------------------------------------------------------------------ save
 	public void save(RealStatsPlugin plugin)
 	{
@@ -180,10 +220,13 @@ public class RealPlayerStats
 			BufferedWriter writer = new BufferedWriter(new FileWriter(
 				plugin.getDataFolder() + "/" + player.getName() + ".txt"
 			));
-			saveIntList(writer, "break", breakBlocks);
-			saveIntList(writer, "feed",  feedCreatures);
-			saveIntList(writer, "place", placeBlocks);
-			saveIntList(writer, "tame",  tameCreatures);
+			saveLongList(writer, "break",      breakBlocks);
+			saveLongList(writer, "feed",       feedCreatures);
+			saveLongList(writer, "leftclick",  leftClickBlocks);
+			saveLongList(writer, "moving",     movingDistances);
+			saveLongList(writer, "place",      placeBlocks);
+			saveLongList(writer, "rightclick", rightClickBlocks);
+			saveLongList(writer, "tame",       tameCreatures);
 			writer.close();
 		} catch (Exception e) {
 			plugin.log(
@@ -192,8 +235,8 @@ public class RealPlayerStats
 		}
 	}
 
-	//----------------------------------------------------------------------------------- saveIntList
-	private void saveIntList(BufferedWriter writer, String listName, int[] list) throws IOException
+	//---------------------------------------------------------------------------------- saveLongList
+	private void saveLongList(BufferedWriter writer, String listName, long[] list) throws IOException
 	{
 		String buffer = "";
 		for (int i = 0; i < list.length; i++) {
