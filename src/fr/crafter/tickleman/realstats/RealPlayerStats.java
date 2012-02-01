@@ -58,7 +58,7 @@ public class RealPlayerStats
 	public static final int MOVING_SPRINT = 4;
 	public static final int MOVING_WALK   = 5;
 
-	public static final int CREATURES_COUNT = 24;
+	public static final int CREATURES_COUNT = 23;
 	public static final int VEHICLES_COUNT  = 6;
 
 	private boolean mustSave = false;
@@ -139,7 +139,10 @@ public class RealPlayerStats
 		if (entityClass.equals(CraftVillager.class))    return 20;
 		if (entityClass.equals(CraftEnderDragon.class)) return 21;
 
-		if (entityClass.equals(CraftPlayer.class))      return 22;
+		if (entityClass.equals(CraftPlayer.class))                  return 22;
+		if (entityClass.getSimpleName().equals("SpoutCraftPlayer")) return 22;
+		
+		System.out.println("RealStats unknown creature class " + entityClass.getSimpleName());
 
 		return 0;
 	}
