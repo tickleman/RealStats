@@ -14,6 +14,7 @@ import org.bukkit.craftbukkit.entity.CraftCaveSpider;
 import org.bukkit.craftbukkit.entity.CraftChicken;
 import org.bukkit.craftbukkit.entity.CraftCow;
 import org.bukkit.craftbukkit.entity.CraftCreeper;
+import org.bukkit.craftbukkit.entity.CraftEnderDragon;
 import org.bukkit.craftbukkit.entity.CraftEnderman;
 import org.bukkit.craftbukkit.entity.CraftGhast;
 import org.bukkit.craftbukkit.entity.CraftMagmaCube;
@@ -21,6 +22,7 @@ import org.bukkit.craftbukkit.entity.CraftMinecart;
 import org.bukkit.craftbukkit.entity.CraftMushroomCow;
 import org.bukkit.craftbukkit.entity.CraftPig;
 import org.bukkit.craftbukkit.entity.CraftPigZombie;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.entity.CraftSheep;
 import org.bukkit.craftbukkit.entity.CraftSilverfish;
 import org.bukkit.craftbukkit.entity.CraftSkeleton;
@@ -42,11 +44,13 @@ public class RealPlayerStats
 
 	public static final int BREAK       = 1;
 	public static final int FEED        = 2;
-	public static final int LEFT_CLICK  = 3;
-	public static final int MOVING      = 4;
-	public static final int PLACE       = 5;
-	public static final int RIGHT_CLICK = 6;
-	public static final int TAME        = 7;
+	public static final int HIT         = 3;
+	public static final int KILL        = 4;
+	public static final int LEFT_CLICK  = 5;
+	public static final int MOVING      = 6;
+	public static final int PLACE       = 7;
+	public static final int RIGHT_CLICK = 8;
+	public static final int TAME        = 9;
 
 	public static final int MOVING_BOAT   = 1;
 	public static final int MOVING_CART   = 2;
@@ -54,12 +58,14 @@ public class RealPlayerStats
 	public static final int MOVING_SPRINT = 4;
 	public static final int MOVING_WALK   = 5;
 
-	public static final int CREATURES_COUNT = 21;
+	public static final int CREATURES_COUNT = 24;
 	public static final int VEHICLES_COUNT  = 6;
 
 	private boolean mustSave = false;
 	private long[] breakBlocks;
 	private long[] feedCreatures;
+	private long[] hitCreatures;
+	private long[] killCreatures;
 	private long[] leftClickBlocks;
 	private long[] movingDistances;
 	private long[] placeBlocks;
@@ -72,12 +78,29 @@ public class RealPlayerStats
 		this.player      = player;
 		breakBlocks      = new long[net.minecraft.server.Block.byId.length + 1];
 		feedCreatures    = new long[CREATURES_COUNT];
+		hitCreatures     = new long[CREATURES_COUNT];
+		killCreatures    = new long[CREATURES_COUNT];
 		leftClickBlocks  = new long[net.minecraft.server.Block.byId.length + 1];
 		movingDistances  = new long[VEHICLES_COUNT];
 		placeBlocks      = new long[net.minecraft.server.Block.byId.length + 1];
 		rightClickBlocks = new long[net.minecraft.server.Block.byId.length + 1];
 		tameCreatures    = new long[CREATURES_COUNT];
 		load(plugin);
+	}
+
+	//------------------------------------------------------------------------------ actionFromString
+	public static int actionFromString(String string)
+	{
+		if (string.equals("break"))      return BREAK;
+		if (string.equals("feed"))       return FEED;
+		if (string.equals("hit"))        return HIT;
+		if (string.equals("kill"))       return KILL;
+		if (string.equals("leftclick"))  return LEFT_CLICK;
+		if (string.equals("moving"))     return MOVING;
+		if (string.equals("place"))      return PLACE;
+		if (string.equals("rightclick")) return RIGHT_CLICK;
+		if (string.equals("tame"))       return TAME;
+		return 0;
 	}
 
 	//-------------------------------------------------------------------------------------- autoSave
@@ -114,6 +137,10 @@ public class RealPlayerStats
 		if (entityClass.equals(CraftZombie.class))      return 19;
 
 		if (entityClass.equals(CraftVillager.class))    return 20;
+		if (entityClass.equals(CraftEnderDragon.class)) return 21;
+
+		if (entityClass.equals(CraftPlayer.class))      return 22;
+
 		return 0;
 	}
 
@@ -128,31 +155,44 @@ public class RealPlayerStats
 	//----------------------------------------------------------------------------------------- getXp
 	public long getXp(int action, int typeId)
 	{
-		if      (action == BREAK)        return breakBlocks      [typeId];
-		else if (action == LEFT_CLICK)   return leftClickBlocks  [typeId];
-		else if (action == FEED)         return feedCreatures    [typeId];
-		else if (action == MOVING)       return movingDistances  [typeId];
-		else if (action == PLACE)        return placeBlocks      [typeId];
-		else if (action == RIGHT_CLICK)  return rightClickBlocks [typeId];
-		else if (action == TAME)         return tameCreatures    [typeId];
+		try {
+			switch (action) {
+				case BREAK:       return breakBlocks     [typeId];
+				case LEFT_CLICK:  return leftClickBlocks [typeId];
+				case FEED:        return feedCreatures   [typeId];
+				case HIT:         return hitCreatures    [typeId];
+				case KILL:        return killCreatures   [typeId];
+				case MOVING:      return movingDistances [typeId];
+				case PLACE:       return placeBlocks     [typeId];
+				case RIGHT_CLICK: return rightClickBlocks[typeId];
+				case TAME:        return tameCreatures   [typeId];
+			}
+		} catch (ArrayIndexOutOfBoundsException e) {
+		}
 		return 0;
 	}
 
 	//------------------------------------------------------------------------------------- increment
 	public void increment(int action, Block block)
 	{
-		if      (action == BREAK)       breakBlocks      [block.getTypeId()] ++;
-		else if (action == LEFT_CLICK)  leftClickBlocks  [block.getTypeId()] ++;
-		else if (action == PLACE)       placeBlocks      [block.getTypeId()] ++;
-		else if (action == RIGHT_CLICK) rightClickBlocks [block.getTypeId()] ++;
+		switch (action) {
+			case BREAK:       breakBlocks      [block.getTypeId()] ++;
+			case LEFT_CLICK:  leftClickBlocks  [block.getTypeId()] ++;
+			case PLACE:       placeBlocks      [block.getTypeId()] ++;
+			case RIGHT_CLICK: rightClickBlocks [block.getTypeId()] ++;
+		}
 		mustSave = true;
 	}
 
 	//------------------------------------------------------------------------------------- increment
 	public void increment(int action, Entity entity)
 	{
-		if      (action == FEED) feedCreatures[getCreatureId(entity.getClass())] ++;
-		else if (action == TAME) tameCreatures[getCreatureId(entity.getClass())] ++;
+		switch (action) {
+			case FEED: feedCreatures[getCreatureId(entity.getClass())] ++; break;
+			case HIT:  hitCreatures [getCreatureId(entity.getClass())] ++; break;
+			case KILL: killCreatures[getCreatureId(entity.getClass())] ++; break;
+			case TAME: tameCreatures[getCreatureId(entity.getClass())] ++; break;
+		}
 		mustSave = true;
 	}
 
@@ -187,6 +227,8 @@ public class RealPlayerStats
 					list = buffer.split(";");
 					loadLongList(key, list, "break",      breakBlocks);
 					loadLongList(key, list, "feed",       feedCreatures);
+					loadLongList(key, list, "hit",        hitCreatures);
+					loadLongList(key, list, "kill",       killCreatures);
 					loadLongList(key, list, "leftclick",  leftClickBlocks);
 					loadLongList(key, list, "moving",     movingDistances);
 					loadLongList(key, list, "place",      placeBlocks);
@@ -222,6 +264,8 @@ public class RealPlayerStats
 			));
 			saveLongList(writer, "break",      breakBlocks);
 			saveLongList(writer, "feed",       feedCreatures);
+			saveLongList(writer, "hit",        hitCreatures);
+			saveLongList(writer, "kill",       killCreatures);
 			saveLongList(writer, "leftclick",  leftClickBlocks);
 			saveLongList(writer, "moving",     movingDistances);
 			saveLongList(writer, "place",      placeBlocks);

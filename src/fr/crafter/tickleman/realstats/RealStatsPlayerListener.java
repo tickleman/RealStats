@@ -34,7 +34,7 @@ public class RealStatsPlayerListener extends PlayerListener
 	{
 		Player player = event.getPlayer();
 		Block  block = event.getClickedBlock();
-		if (player instanceof Player && block instanceof Block) {
+		if ((player instanceof Player) && (block instanceof Block)) {
 			Action action = event.getAction();
 			if (action.equals(Action.LEFT_CLICK_BLOCK)) {
 				plugin.getPlayerStats(player).increment(RealPlayerStats.LEFT_CLICK, block);

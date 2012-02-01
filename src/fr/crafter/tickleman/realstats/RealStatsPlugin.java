@@ -115,10 +115,12 @@ public class RealStatsPlugin extends RealPlugin
 		PluginManager pm = getServer().getPluginManager();
 		pm.registerEvent(Type.BLOCK_BREAK,            blockListener,   Priority.Lowest, this);
 		pm.registerEvent(Type.BLOCK_PLACE,            blockListener,   Priority.Lowest, this);
+		pm.registerEvent(Type.ENTITY_DAMAGE,          entityListener,  Priority.Lowest, this);
+		pm.registerEvent(Type.ENTITY_DEATH,           entityListener,  Priority.Lowest, this);
 		pm.registerEvent(Type.ENTITY_TAME,            entityListener,  Priority.Lowest, this);
 		pm.registerEvent(Type.PLAYER_INTERACT,        playerListener,  Priority.Lowest, this);
 		pm.registerEvent(Type.PLAYER_INTERACT_ENTITY, playerListener,  Priority.Lowest, this);
-		pm.registerEvent(Type.PLAYER_MOVE,            playerListener,  Priority.Lowest, this);
+		// pm.registerEvent(Type.PLAYER_MOVE,            playerListener,  Priority.Lowest, this);
 		pm.registerEvent(Type.PLAYER_QUIT,            playerListener,  Priority.Lowest, this);
 		pm.registerEvent(Type.PLAYER_TOGGLE_SPRINT,   playerListener,  Priority.Lowest, this);
 		pm.registerEvent(Type.PLAYER_TOGGLE_SNEAK,    playerListener,  Priority.Lowest, this);
