@@ -33,14 +33,13 @@ import org.bukkit.craftbukkit.entity.CraftVillager;
 import org.bukkit.craftbukkit.entity.CraftWolf;
 import org.bukkit.craftbukkit.entity.CraftZombie;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Vehicle;
 
 //##################################################################################### PlayerStats
 public class RealPlayerStats
 {
 
-	private Player player;
+	private String playerName;
 
 	public static final int BREAK       = 1;
 	public static final int FEED        = 2;
@@ -73,9 +72,9 @@ public class RealPlayerStats
 	private long[] tameCreatures;
 
 	//----------------------------------------------------------------------------------- PlayerStats
-	public RealPlayerStats(RealStatsPlugin plugin, Player player)
+	public RealPlayerStats(RealStatsPlugin plugin, String playerName)
 	{
-		this.player      = player;
+		this.playerName  = playerName;
 		breakBlocks      = new long[net.minecraft.server.Block.byId.length + 1];
 		feedCreatures    = new long[CREATURES_COUNT];
 		hitCreatures     = new long[CREATURES_COUNT];
@@ -218,7 +217,7 @@ public class RealPlayerStats
 	{
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(
-				plugin.getDataFolder() + "/" + player.getName() + ".txt")
+				plugin.getDataFolder() + "/" + playerName + ".txt")
 			);
 			String buffer;
 			String[] list;
@@ -263,7 +262,7 @@ public class RealPlayerStats
 	{
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(
-				plugin.getDataFolder() + "/" + player.getName() + ".txt"
+				plugin.getDataFolder() + "/" + playerName + ".txt"
 			));
 			saveLongList(writer, "break",      breakBlocks);
 			saveLongList(writer, "feed",       feedCreatures);
@@ -277,7 +276,7 @@ public class RealPlayerStats
 			writer.close();
 		} catch (Exception e) {
 			plugin.log(
-				Level.SEVERE, "Could not save " + plugin.getDataFolder() + "/" + player.getName() + ".txt"
+				Level.SEVERE, "Could not save " + plugin.getDataFolder() + "/" + playerName + ".txt"
 			);
 		}
 	}

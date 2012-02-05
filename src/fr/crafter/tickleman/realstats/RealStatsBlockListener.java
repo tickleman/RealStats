@@ -24,7 +24,7 @@ public class RealStatsBlockListener extends BlockListener
 	{
 		Player player = event.getPlayer();
 		if (player instanceof Player && player.getGameMode().equals(GameMode.SURVIVAL)) {
-			plugin.getPlayerStats(player).increment(RealPlayerStats.BREAK, event.getBlock());
+			plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.BREAK, event.getBlock());
 		}
 	}
 
@@ -34,7 +34,7 @@ public class RealStatsBlockListener extends BlockListener
 	{
 		Player player = event.getPlayer();
 		if (player instanceof Player) {
-			plugin.getPlayerStats(player).increment(RealPlayerStats.PLACE, event.getBlock());
+			plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.PLACE, event.getBlock());
 		}
 	}
 

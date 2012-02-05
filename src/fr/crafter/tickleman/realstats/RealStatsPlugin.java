@@ -17,7 +17,7 @@ public class RealStatsPlugin extends RealPlugin
 
 	private Map<Player, Double>          playersDistance   = new HashMap<Player, Double>();
 	private Map<Player, Integer>         playersMovingType = new HashMap<Player, Integer>();
-	private Map<Player, RealPlayerStats> playersStats      = new HashMap<Player, RealPlayerStats>();
+	private Map<String, RealPlayerStats> playersStats      = new HashMap<String, RealPlayerStats>();
 
 	//--------------------------------------------------------------------------- addToPlayerDistance
 	public void addToPlayerDistance(Player player, double distance)
@@ -47,7 +47,7 @@ public class RealStatsPlugin extends RealPlugin
 	{
 		Double distance = getPlayerDistance(player);
 		if (distance > 0.0) {
-			getPlayerStats(player).increment(
+			getPlayerStats(player.getName()).increment(
 				RealPlayerStats.MOVING,
 				getPlayerMovingType(player),
 				Math.round(distance)
@@ -79,12 +79,12 @@ public class RealStatsPlugin extends RealPlugin
 	}
 
 	//-------------------------------------------------------------------------------- getPlayerStats
-	public RealPlayerStats getPlayerStats(Player player)
+	public RealPlayerStats getPlayerStats(String playerName)
 	{
-		RealPlayerStats playerStats = playersStats.get(player);
+		RealPlayerStats playerStats = playersStats.get(playerName);
 		if (playerStats == null) {
-			playerStats = new RealPlayerStats(this, player);
-			playersStats.put(player, playerStats);
+			playerStats = new RealPlayerStats(this, playerName);
+			playersStats.put(playerName, playerStats);
 		}
 		return playerStats;
 	}

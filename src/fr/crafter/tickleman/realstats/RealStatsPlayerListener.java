@@ -37,9 +37,9 @@ public class RealStatsPlayerListener extends PlayerListener
 		if ((player instanceof Player) && (block instanceof Block)) {
 			Action action = event.getAction();
 			if (action.equals(Action.LEFT_CLICK_BLOCK)) {
-				plugin.getPlayerStats(player).increment(RealPlayerStats.LEFT_CLICK, block);
+				plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.LEFT_CLICK, block);
 			} else if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
-				plugin.getPlayerStats(player).increment(RealPlayerStats.RIGHT_CLICK, block);
+				plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.RIGHT_CLICK, block);
 			}
 		}
 	}
@@ -56,7 +56,7 @@ public class RealStatsPlayerListener extends PlayerListener
 			&& entity.getClass().getName().contains("Craft")
 			&& player.getItemInHand().getType().equals(Material.WHEAT)
 		) {
-			plugin.getPlayerStats(player).increment(RealPlayerStats.FEED, entity);
+			plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.FEED, entity);
 		}
 	}
 

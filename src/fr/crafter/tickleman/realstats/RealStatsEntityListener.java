@@ -35,7 +35,7 @@ public class RealStatsEntityListener extends EntityListener
 				Entity entity = event.getEntity();
 				Player player = (Player)finalEvent.getDamager();
 				lastAttacker.put(entity, player);
-				plugin.getPlayerStats(player).increment(RealPlayerStats.HIT, entity);
+				plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.HIT, entity);
 			}
 		}
 	}
@@ -48,7 +48,7 @@ public class RealStatsEntityListener extends EntityListener
 		Player player = lastAttacker.get(entity);
 		if (player != null) {
 			lastAttacker.remove(entity);
-			plugin.getPlayerStats(player).increment(RealPlayerStats.KILL, entity);
+			plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.KILL, entity);
 		}
 	}
 
@@ -58,7 +58,7 @@ public class RealStatsEntityListener extends EntityListener
 	{
 		Player player = (Player)event.getOwner();
 		if (player instanceof Player && player.getGameMode().equals(GameMode.SURVIVAL)) {
-			plugin.getPlayerStats(player).increment(RealPlayerStats.TAME, event.getEntity());
+			plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.TAME, event.getEntity());
 		}
 	}
 
