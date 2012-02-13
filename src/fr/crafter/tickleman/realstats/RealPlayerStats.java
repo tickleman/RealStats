@@ -8,32 +8,32 @@ import java.io.IOException;
 import java.util.logging.Level;
 
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.entity.CraftBlaze;
-import org.bukkit.craftbukkit.entity.CraftBoat;
-import org.bukkit.craftbukkit.entity.CraftCaveSpider;
-import org.bukkit.craftbukkit.entity.CraftChicken;
-import org.bukkit.craftbukkit.entity.CraftCow;
-import org.bukkit.craftbukkit.entity.CraftCreeper;
-import org.bukkit.craftbukkit.entity.CraftEnderDragon;
-import org.bukkit.craftbukkit.entity.CraftEnderman;
-import org.bukkit.craftbukkit.entity.CraftGhast;
-import org.bukkit.craftbukkit.entity.CraftMagmaCube;
-import org.bukkit.craftbukkit.entity.CraftMinecart;
-import org.bukkit.craftbukkit.entity.CraftMushroomCow;
-import org.bukkit.craftbukkit.entity.CraftPig;
-import org.bukkit.craftbukkit.entity.CraftPigZombie;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.craftbukkit.entity.CraftSheep;
-import org.bukkit.craftbukkit.entity.CraftSilverfish;
-import org.bukkit.craftbukkit.entity.CraftSkeleton;
-import org.bukkit.craftbukkit.entity.CraftSlime;
-import org.bukkit.craftbukkit.entity.CraftSpider;
-import org.bukkit.craftbukkit.entity.CraftSquid;
-import org.bukkit.craftbukkit.entity.CraftVillager;
-import org.bukkit.craftbukkit.entity.CraftWolf;
-import org.bukkit.craftbukkit.entity.CraftZombie;
+import org.bukkit.entity.Blaze;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.CaveSpider;
+import org.bukkit.entity.Chicken;
+import org.bukkit.entity.Cow;
+import org.bukkit.entity.Creeper;
+import org.bukkit.entity.EnderDragon;
+import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Ghast;
+import org.bukkit.entity.MagmaCube;
+import org.bukkit.entity.Minecart;
+import org.bukkit.entity.MushroomCow;
+import org.bukkit.entity.Pig;
+import org.bukkit.entity.PigZombie;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Sheep;
+import org.bukkit.entity.Silverfish;
+import org.bukkit.entity.Skeleton;
+import org.bukkit.entity.Slime;
+import org.bukkit.entity.Spider;
+import org.bukkit.entity.Squid;
 import org.bukkit.entity.Vehicle;
+import org.bukkit.entity.Villager;
+import org.bukkit.entity.Wolf;
+import org.bukkit.entity.Zombie;
 
 //##################################################################################### PlayerStats
 public class RealPlayerStats
@@ -42,14 +42,15 @@ public class RealPlayerStats
 	private String playerName;
 
 	public static final int BREAK       = 1;
-	public static final int FEED        = 2;
-	public static final int HIT         = 3;
-	public static final int KILL        = 4;
-	public static final int LEFT_CLICK  = 5;
-	public static final int MOVING      = 6;
-	public static final int PLACE       = 7;
-	public static final int RIGHT_CLICK = 8;
-	public static final int TAME        = 9;
+	public static final int CUT         = 2;
+	public static final int FEED        = 3;
+	public static final int HIT         = 4;
+	public static final int KILL        = 5;
+	public static final int LEFT_CLICK  = 6;
+	public static final int MOVING      = 7;
+	public static final int PLACE       = 8;
+	public static final int RIGHT_CLICK = 9;
+	public static final int TAME        = 10;
 
 	public static final int MOVING_BOAT   = 1;
 	public static final int MOVING_CART   = 2;
@@ -62,6 +63,7 @@ public class RealPlayerStats
 
 	private boolean mustSave = false;
 	private long[] breakBlocks;
+	private long[] cutWool;
 	private long[] feedCreatures;
 	private long[] hitCreatures;
 	private long[] killCreatures;
@@ -76,6 +78,7 @@ public class RealPlayerStats
 	{
 		this.playerName  = playerName;
 		breakBlocks      = new long[net.minecraft.server.Block.byId.length + 1];
+		cutWool          = new long[CREATURES_COUNT];
 		feedCreatures    = new long[CREATURES_COUNT];
 		hitCreatures     = new long[CREATURES_COUNT];
 		killCreatures    = new long[CREATURES_COUNT];
@@ -91,6 +94,7 @@ public class RealPlayerStats
 	public static int actionFromString(String string)
 	{
 		if (string.equals("break"))      return BREAK;
+		if (string.equals("cut"))        return CUT;
 		if (string.equals("feed"))       return FEED;
 		if (string.equals("hit"))        return HIT;
 		if (string.equals("kill"))       return KILL;
@@ -112,45 +116,44 @@ public class RealPlayerStats
 	}
 
 	//--------------------------------------------------------------------------------- getCreatureId
-	public int getCreatureId(Class<? extends Entity> entityClass)
+	public int getCreatureId(Entity entity)
 	{
-		if (entityClass.equals(CraftChicken.class))     return 1;
-		if (entityClass.equals(CraftCow.class))         return 2;
-		if (entityClass.equals(CraftPig.class))         return 3;
-		if (entityClass.equals(CraftSheep.class))       return 4;
-		if (entityClass.equals(CraftWolf.class))        return 5;
+		if (entity instanceof Chicken)     return 1;
+		if (entity instanceof Cow)         return 2;
+		if (entity instanceof Pig)         return 3;
+		if (entity instanceof Sheep)       return 4;
+		if (entity instanceof Wolf)        return 5;
 
-		if (entityClass.equals(CraftBlaze.class))       return 6;
-		if (entityClass.equals(CraftCaveSpider.class))  return 7;
-		if (entityClass.equals(CraftCreeper.class))     return 8;
-		if (entityClass.equals(CraftEnderman.class))    return 9;
-		if (entityClass.equals(CraftGhast.class))       return 10;
-		if (entityClass.equals(CraftMagmaCube.class))   return 11;
-		if (entityClass.equals(CraftMushroomCow.class)) return 12;
-		if (entityClass.equals(CraftPigZombie.class))   return 13;
-		if (entityClass.equals(CraftSilverfish.class))  return 14;
-		if (entityClass.equals(CraftSkeleton.class))    return 15;
-		if (entityClass.equals(CraftSlime.class))       return 16;
-		if (entityClass.equals(CraftSpider.class))      return 17;
-		if (entityClass.equals(CraftSquid.class))       return 18;
-		if (entityClass.equals(CraftZombie.class))      return 19;
+		if (entity instanceof Blaze)       return 6;
+		if (entity instanceof CaveSpider)  return 7;
+		if (entity instanceof Creeper)     return 8;
+		if (entity instanceof Enderman)    return 9;
+		if (entity instanceof Ghast)       return 10;
+		if (entity instanceof MagmaCube)   return 11;
+		if (entity instanceof MushroomCow) return 12;
+		if (entity instanceof PigZombie)   return 13;
+		if (entity instanceof Silverfish)  return 14;
+		if (entity instanceof Skeleton)    return 15;
+		if (entity instanceof Slime)       return 16;
+		if (entity instanceof Spider)      return 17;
+		if (entity instanceof Squid)       return 18;
+		if (entity instanceof Zombie)      return 19;
 
-		if (entityClass.equals(CraftVillager.class))    return 20;
-		if (entityClass.equals(CraftEnderDragon.class)) return 21;
+		if (entity instanceof Villager)    return 20;
+		if (entity instanceof EnderDragon) return 21;
 
-		if (entityClass.equals(CraftPlayer.class))                  return 22;
-		if (entityClass.getSimpleName().equals("SpoutCraftPlayer")) return 22;
-		
-		System.out.println("RealStats unknown creature class " + entityClass.getSimpleName());
+		if (entity instanceof Player)      return 22;
+
+		System.out.println("[SEVERE] RealStats unknown creature class " + entity.getClass().getSimpleName());
 
 		return 0;
 	}
 
 	//---------------------------------------------------------------------------------- getVehicleId
-	public int getVehicleId(Class<? extends Entity> vehicleClass)
+	public int getVehicleId(Entity vehicle)
 	{
-		if (vehicleClass.equals(CraftBoat.class))     return MOVING_BOAT;
-		if (vehicleClass.equals(CraftMinecart.class)) return MOVING_CART;
+		if (vehicle instanceof Boat)     return MOVING_BOAT;
+		if (vehicle instanceof Minecart) return MOVING_CART;
 		return 0;
 	}
 
@@ -160,10 +163,11 @@ public class RealPlayerStats
 		try {
 			switch (action) {
 				case BREAK:       return breakBlocks     [typeId];
-				case LEFT_CLICK:  return leftClickBlocks [typeId];
+				case CUT:         return cutWool         [typeId];
 				case FEED:        return feedCreatures   [typeId];
 				case HIT:         return hitCreatures    [typeId];
 				case KILL:        return killCreatures   [typeId];
+				case LEFT_CLICK:  return leftClickBlocks [typeId];
 				case MOVING:      return movingDistances [typeId];
 				case PLACE:       return placeBlocks     [typeId];
 				case RIGHT_CLICK: return rightClickBlocks[typeId];
@@ -190,10 +194,11 @@ public class RealPlayerStats
 	public void increment(int action, Entity entity)
 	{
 		switch (action) {
-			case FEED: feedCreatures[getCreatureId(entity.getClass())] ++; break;
-			case HIT:  hitCreatures [getCreatureId(entity.getClass())] ++; break;
-			case KILL: killCreatures[getCreatureId(entity.getClass())] ++; break;
-			case TAME: tameCreatures[getCreatureId(entity.getClass())] ++; break;
+			case CUT:  cutWool      [getCreatureId(entity)] ++; break;
+			case FEED: feedCreatures[getCreatureId(entity)] ++; break;
+			case HIT:  hitCreatures [getCreatureId(entity)] ++; break;
+			case KILL: killCreatures[getCreatureId(entity)] ++; break;
+			case TAME: tameCreatures[getCreatureId(entity)] ++; break;
 		}
 		mustSave = true;
 	}
@@ -201,7 +206,7 @@ public class RealPlayerStats
 	//------------------------------------------------------------------------------------- increment
 	public void increment(int action, Vehicle vehicle, long duration)
 	{
-		if (action == MOVING) movingDistances[getVehicleId(vehicle.getClass())] += duration;
+		if (action == MOVING) movingDistances[getVehicleId(vehicle)] += duration;
 		mustSave = true;
 	}
 
@@ -219,29 +224,37 @@ public class RealPlayerStats
 			BufferedReader reader = new BufferedReader(new FileReader(
 				plugin.getDataFolder() + "/" + playerName + ".txt")
 			);
-			String buffer;
-			String[] list;
-			while ((buffer = reader.readLine()) != null) {
-				int equalPos = buffer.indexOf('=');
-				if (equalPos > 0) {
-					String key = buffer.substring(0, equalPos);
-					buffer = buffer.substring(key.length() + 1);
-					list = buffer.split(";");
-					loadLongList(key, list, "break",      breakBlocks);
-					loadLongList(key, list, "feed",       feedCreatures);
-					loadLongList(key, list, "hit",        hitCreatures);
-					loadLongList(key, list, "kill",       killCreatures);
-					loadLongList(key, list, "leftclick",  leftClickBlocks);
-					loadLongList(key, list, "moving",     movingDistances);
-					loadLongList(key, list, "place",      placeBlocks);
-					loadLongList(key, list, "rightclick", rightClickBlocks);
-					loadLongList(key, list, "tame",       tameCreatures);
+			try {
+				String buffer;
+				String[] list;
+				while ((buffer = reader.readLine()) != null) {
+					int equalPos = buffer.indexOf('=');
+					if (equalPos > 0) {
+						String key = buffer.substring(0, equalPos);
+						buffer = buffer.substring(key.length() + 1);
+						list = buffer.split(";");
+						loadLongList(key, list, "break",      breakBlocks);
+						loadLongList(key, list, "cut",        cutWool);
+						loadLongList(key, list, "feed",       feedCreatures);
+						loadLongList(key, list, "hit",        hitCreatures);
+						loadLongList(key, list, "kill",       killCreatures);
+						loadLongList(key, list, "leftclick",  leftClickBlocks);
+						loadLongList(key, list, "moving",     movingDistances);
+						loadLongList(key, list, "place",      placeBlocks);
+						loadLongList(key, list, "rightclick", rightClickBlocks);
+						loadLongList(key, list, "tame",       tameCreatures);
+					}
 				}
+			} catch (IOException e) {
+				System.out.print("[SEVERE]" + e.getMessage());
+				e.printStackTrace(System.out);
 			}
 			reader.close();
-		} catch (Exception e) {
+		} catch (IOException e) {
+			System.out.print("[DEBUG]" + e.getMessage());
+			e.printStackTrace(System.out);
 			plugin.log(
-				Level.INFO, "Write default " + plugin.getDataFolder() + "/config.txt file"
+				Level.INFO, "Write default " + plugin.getDataFolder() + "/" + playerName + ".txt file"
 			);
 			save(plugin);
 		}
@@ -265,6 +278,7 @@ public class RealPlayerStats
 				plugin.getDataFolder() + "/" + playerName + ".txt"
 			));
 			saveLongList(writer, "break",      breakBlocks);
+			saveLongList(writer, "cut",        cutWool);
 			saveLongList(writer, "feed",       feedCreatures);
 			saveLongList(writer, "hit",        hitCreatures);
 			saveLongList(writer, "kill",       killCreatures);
@@ -274,7 +288,7 @@ public class RealPlayerStats
 			saveLongList(writer, "rightclick", rightClickBlocks);
 			saveLongList(writer, "tame",       tameCreatures);
 			writer.close();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			plugin.log(
 				Level.SEVERE, "Could not save " + plugin.getDataFolder() + "/" + playerName + ".txt"
 			);

@@ -5,9 +5,6 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event.Priority;
-import org.bukkit.event.Event.Type;
-import org.bukkit.plugin.PluginManager;
 
 import fr.crafter.tickleman.realplugin.RealPlugin;
 
@@ -108,24 +105,7 @@ public class RealStatsPlugin extends RealPlugin
 	public void onEnable()
 	{
 		super.onEnable();
-		RealStatsBlockListener   blockListener   = new RealStatsBlockListener(this);
-		RealStatsEntityListener  entityListener  = new RealStatsEntityListener(this);
-		RealStatsPlayerListener  playerListener  = new RealStatsPlayerListener(this);
-		RealStatsVehicleListener vehicleListener = new RealStatsVehicleListener(this);
-		PluginManager pm = getServer().getPluginManager();
-		pm.registerEvent(Type.BLOCK_BREAK,            blockListener,   Priority.Lowest, this);
-		pm.registerEvent(Type.BLOCK_PLACE,            blockListener,   Priority.Lowest, this);
-		pm.registerEvent(Type.ENTITY_DAMAGE,          entityListener,  Priority.Lowest, this);
-		pm.registerEvent(Type.ENTITY_DEATH,           entityListener,  Priority.Lowest, this);
-		pm.registerEvent(Type.ENTITY_TAME,            entityListener,  Priority.Lowest, this);
-		pm.registerEvent(Type.PLAYER_INTERACT,        playerListener,  Priority.Lowest, this);
-		pm.registerEvent(Type.PLAYER_INTERACT_ENTITY, playerListener,  Priority.Lowest, this);
-		// pm.registerEvent(Type.PLAYER_MOVE,            playerListener,  Priority.Lowest, this);
-		pm.registerEvent(Type.PLAYER_QUIT,            playerListener,  Priority.Lowest, this);
-		pm.registerEvent(Type.PLAYER_TOGGLE_SPRINT,   playerListener,  Priority.Lowest, this);
-		pm.registerEvent(Type.PLAYER_TOGGLE_SNEAK,    playerListener,  Priority.Lowest, this);
-		pm.registerEvent(Type.VEHICLE_ENTER,          vehicleListener, Priority.Lowest, this);
-		pm.registerEvent(Type.VEHICLE_EXIT,           vehicleListener, Priority.Lowest, this);
+		getServer().getPluginManager().registerEvents(new RealStatsListeners(this), this);
 		getServer().getScheduler().scheduleSyncRepeatingTask(
 			this, new Runnable() { public void run() { autoSave(); } }, 1200L, 1200L
 		);
@@ -135,13 +115,13 @@ public class RealStatsPlugin extends RealPlugin
 	public void removePlayerStats(Player player)
 	{
 		flushPlayerDistance(player);
-		RealPlayerStats playerStats = playersStats.get(player);
+		RealPlayerStats playerStats = playersStats.get(player.getName());
 		if (playerStats != null) {
 			playerStats.save(this);
 		}
 		playersDistance.remove(player);
 		playersMovingType.remove(player);
-		playersStats.remove(player);
+		playersStats.remove(player.getName());
 	}
 
 	//--------------------------------------------------------------------------- setPlayerMovingType
