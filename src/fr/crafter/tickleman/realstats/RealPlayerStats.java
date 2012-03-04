@@ -246,13 +246,14 @@ public class RealPlayerStats
 					}
 				}
 			} catch (IOException e) {
+				plugin.log(
+					Level.SEVERE, "Could not load " + plugin.getDataFolder() + "/" + playerName + ".txt"
+				);
 				System.out.print("[SEVERE]" + e.getMessage());
 				e.printStackTrace(System.out);
 			}
 			reader.close();
 		} catch (IOException e) {
-			System.out.print("[DEBUG]" + e.getMessage());
-			e.printStackTrace(System.out);
 			plugin.log(
 				Level.INFO, "Write default " + plugin.getDataFolder() + "/" + playerName + ".txt file"
 			);
@@ -277,21 +278,28 @@ public class RealPlayerStats
 			BufferedWriter writer = new BufferedWriter(new FileWriter(
 				plugin.getDataFolder() + "/" + playerName + ".txt"
 			));
-			saveLongList(writer, "break",      breakBlocks);
-			saveLongList(writer, "cut",        cutWool);
-			saveLongList(writer, "feed",       feedCreatures);
-			saveLongList(writer, "hit",        hitCreatures);
-			saveLongList(writer, "kill",       killCreatures);
-			saveLongList(writer, "leftclick",  leftClickBlocks);
-			saveLongList(writer, "moving",     movingDistances);
-			saveLongList(writer, "place",      placeBlocks);
-			saveLongList(writer, "rightclick", rightClickBlocks);
-			saveLongList(writer, "tame",       tameCreatures);
+			try {
+				saveLongList(writer, "break",      breakBlocks);
+				saveLongList(writer, "cut",        cutWool);
+				saveLongList(writer, "feed",       feedCreatures);
+				saveLongList(writer, "hit",        hitCreatures);
+				saveLongList(writer, "kill",       killCreatures);
+				saveLongList(writer, "leftclick",  leftClickBlocks);
+				saveLongList(writer, "moving",     movingDistances);
+				saveLongList(writer, "place",      placeBlocks);
+				saveLongList(writer, "rightclick", rightClickBlocks);
+				saveLongList(writer, "tame",       tameCreatures);
+			} catch (IOException e) {
+				System.out.print("[SEVERE]" + e.getMessage());
+				e.printStackTrace(System.out);
+			}
 			writer.close();
 		} catch (IOException e) {
 			plugin.log(
 				Level.SEVERE, "Could not save " + plugin.getDataFolder() + "/" + playerName + ".txt"
 			);
+			plugin.log(Level.SEVERE, e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 

@@ -6,10 +6,12 @@ import java.util.Map;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Animals;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Sheep;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -141,16 +143,26 @@ public class RealStatsListeners implements Listener
 			if (player.getItemInHand() != null) {
 				Material itemInHandType = player.getItemInHand().getType();
 				if (itemInHandType.equals(Material.WHEAT)) {
-					plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.FEED, entity);
+					if (entity instanceof Animals) {
+						Animals animal = (Animals)entity;
+						if (animal.canBreed()) {
+							plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.FEED, entity);
+						}
+					}
 				} else if (itemInHandType.equals(Material.SHEARS)) {
-					plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.CUT, entity);
+					if (entity instanceof Sheep) {
+						Sheep sheep = (Sheep)entity;
+						if (!sheep.isSheared()) {
+							plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.CUT, entity);
+						}
+					}
 				}
 			}
 		}
 	}
 
 	//---------------------------------------------------------------------------------- onPlayerMove
-	// @EventHandler(priority = EventPriority.LOWEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerMove(PlayerMoveEvent event)
 	{
 		Player player = event.getPlayer();
