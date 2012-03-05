@@ -30,7 +30,6 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
-import org.getspout.spoutapi.event.inventory.InventoryClickEvent;
 
 import fr.crafter.tickleman.realplugin.RealLocation;
 
@@ -105,13 +104,15 @@ public class RealStatsListeners implements Listener
 	}
 
 	//------------------------------------------------------------------------------ onInventoryClick
-	@EventHandler(priority = EventPriority.LOWEST)
+	// @EventHandler(priority = EventPriority.LOWEST)
+	/*
 	public void onInventoryClick(InventoryClickEvent event)
 	{
 		Player player = event.getPlayer();
 		if (player instanceof Player) {
 		}
 	}
+	*/
 
 	//------------------------------------------------------------------------------ onPlayerInteract
 	@EventHandler(priority = EventPriority.LOWEST)

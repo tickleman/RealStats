@@ -1,6 +1,6 @@
 name: RealStats
 main: fr.crafter.tickleman.realstats.RealStatsPlugin
-version: 0.12
+version: 0.13
 website: http://plugins.crafter.fr/tickleman/RealStats/
 author: tickleman
 depend: [RealPlugin]
