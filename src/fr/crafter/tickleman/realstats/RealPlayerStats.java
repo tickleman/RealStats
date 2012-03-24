@@ -182,10 +182,10 @@ public class RealPlayerStats
 	public void increment(int action, Block block)
 	{
 		switch (action) {
-			case BREAK:       breakBlocks      [block.getTypeId()] ++;
-			case LEFT_CLICK:  leftClickBlocks  [block.getTypeId()] ++;
-			case PLACE:       placeBlocks      [block.getTypeId()] ++;
-			case RIGHT_CLICK: rightClickBlocks [block.getTypeId()] ++;
+			case BREAK:       breakBlocks      [block.getTypeId()] ++; break;
+			case LEFT_CLICK:  leftClickBlocks  [block.getTypeId()] ++; break;
+			case PLACE:       placeBlocks      [block.getTypeId()] ++; break;
+			case RIGHT_CLICK: rightClickBlocks [block.getTypeId()] ++; break;
 		}
 		mustSave = true;
 	}
