@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.logging.Level;
 
 import org.bukkit.block.Block;
@@ -15,12 +16,16 @@ import org.bukkit.entity.Chicken;
 import org.bukkit.entity.Cow;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EnderDragon;
+import org.bukkit.entity.EnderDragonPart;
 import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Ghast;
+import org.bukkit.entity.Giant;
+import org.bukkit.entity.IronGolem;
 import org.bukkit.entity.MagmaCube;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.MushroomCow;
+import org.bukkit.entity.Ocelot;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Player;
@@ -28,6 +33,7 @@ import org.bukkit.entity.Sheep;
 import org.bukkit.entity.Silverfish;
 import org.bukkit.entity.Skeleton;
 import org.bukkit.entity.Slime;
+import org.bukkit.entity.Snowman;
 import org.bukkit.entity.Spider;
 import org.bukkit.entity.Squid;
 import org.bukkit.entity.Vehicle;
@@ -45,6 +51,7 @@ public class RealPlayerStats
 	public static final int CUT         = 2;
 	public static final int FEED        = 3;
 	public static final int HIT         = 4;
+	public static final int FALL        = 11;
 	public static final int KILL        = 5;
 	public static final int LEFT_CLICK  = 6;
 	public static final int MOVING      = 7;
@@ -58,7 +65,7 @@ public class RealPlayerStats
 	public static final int MOVING_SPRINT = 4;
 	public static final int MOVING_WALK   = 5;
 
-	public static final int CREATURES_COUNT = 23;
+	public static final int CREATURES_COUNT = 28;
 	public static final int VEHICLES_COUNT  = 6;
 
 	private boolean mustSave = false;
@@ -72,6 +79,7 @@ public class RealPlayerStats
 	private long[] placeBlocks;
 	private long[] rightClickBlocks;
 	private long[] tameCreatures;
+	private long   fall;
 
 	//----------------------------------------------------------------------------------- PlayerStats
 	public RealPlayerStats(RealStatsPlugin plugin, String playerName)
@@ -97,6 +105,7 @@ public class RealPlayerStats
 		if (string.equals("cut"))        return CUT;
 		if (string.equals("feed"))       return FEED;
 		if (string.equals("hit"))        return HIT;
+		if (string.equals("fall"))       return FALL;
 		if (string.equals("kill"))       return KILL;
 		if (string.equals("leftclick"))  return LEFT_CLICK;
 		if (string.equals("moving"))     return MOVING;
@@ -143,6 +152,12 @@ public class RealPlayerStats
 		if (entity instanceof EnderDragon) return 21;
 
 		if (entity instanceof Player)      return 22;
+		
+		if (entity instanceof Giant)       return 23;
+		if (entity instanceof IronGolem)   return 24;
+		if (entity instanceof Ocelot)      return 25;
+		if (entity instanceof Snowman)     return 26;
+		if (entity instanceof EnderDragonPart) return 27;
 
 		System.out.println("[SEVERE] RealStats unknown creature class " + entity.getClass().getSimpleName());
 
@@ -166,6 +181,7 @@ public class RealPlayerStats
 				case CUT:         return cutWool         [typeId];
 				case FEED:        return feedCreatures   [typeId];
 				case HIT:         return hitCreatures    [typeId];
+				case FALL:        return fall;
 				case KILL:        return killCreatures   [typeId];
 				case LEFT_CLICK:  return leftClickBlocks [typeId];
 				case MOVING:      return movingDistances [typeId];
@@ -176,6 +192,15 @@ public class RealPlayerStats
 		} catch (ArrayIndexOutOfBoundsException e) {
 		}
 		return 0;
+	}
+
+	//------------------------------------------------------------------------------------- increment
+	public void increment(int action, int amount)
+	{
+		switch (action) {
+			case FALL: fall += amount; break;
+		}
+		mustSave = true;
 	}
 
 	//------------------------------------------------------------------------------------- increment
@@ -233,16 +258,17 @@ public class RealPlayerStats
 						String key = buffer.substring(0, equalPos);
 						buffer = buffer.substring(key.length() + 1);
 						list = buffer.split(";");
-						loadLongList(key, list, "break",      breakBlocks);
-						loadLongList(key, list, "cut",        cutWool);
-						loadLongList(key, list, "feed",       feedCreatures);
-						loadLongList(key, list, "hit",        hitCreatures);
-						loadLongList(key, list, "kill",       killCreatures);
-						loadLongList(key, list, "leftclick",  leftClickBlocks);
-						loadLongList(key, list, "moving",     movingDistances);
-						loadLongList(key, list, "place",      placeBlocks);
-						loadLongList(key, list, "rightclick", rightClickBlocks);
-						loadLongList(key, list, "tame",       tameCreatures);
+						loadLongList(key, list,   "break",      breakBlocks);
+						loadLongList(key, list,   "cut",        cutWool);
+						loadLongList(key, list,   "feed",       feedCreatures);
+						loadLongList(key, list,   "hit",        hitCreatures);
+						loadLongList(key, list,   "kill",       killCreatures);
+						loadLongList(key, list,   "leftclick",  leftClickBlocks);
+						loadLongList(key, list,   "moving",     movingDistances);
+						loadLongList(key, list,   "place",      placeBlocks);
+						loadLongList(key, list,   "rightclick", rightClickBlocks);
+						loadLongList(key, list,   "tame",       tameCreatures);
+						loadValue   (key, buffer, "fall",       "fall");
 					}
 				}
 			} catch (IOException e) {
@@ -271,6 +297,22 @@ public class RealPlayerStats
 		}
 	}
 
+	//------------------------------------------------------------------------------------- loadValue
+	public void loadValue(String key, String readValue, String valueName, String valueFieldName)
+	{
+		if (key.equals(valueName)) {
+			Field valueField = null;
+			try {
+				valueField = getClass().getField(valueFieldName);
+				valueField.setLong(this, Long.parseLong(readValue));
+			} catch (IllegalArgumentException e) {
+			} catch (IllegalAccessException e) {
+			} catch (NoSuchFieldException e) {
+			} catch (SecurityException e1) {
+			}
+		}
+	}
+
 	//------------------------------------------------------------------------------------------ save
 	public void save(RealStatsPlugin plugin)
 	{
@@ -289,6 +331,7 @@ public class RealPlayerStats
 				saveLongList(writer, "place",      placeBlocks);
 				saveLongList(writer, "rightclick", rightClickBlocks);
 				saveLongList(writer, "tame",       tameCreatures);
+				saveValue   (writer, "fall",       fall);
 			} catch (IOException e) {
 				System.out.print("[SEVERE]" + e.getMessage());
 				e.printStackTrace(System.out);
@@ -311,6 +354,12 @@ public class RealPlayerStats
 			buffer = buffer + ";" + list[i];
 		}
 		writer.write(listName + "=" + buffer.substring(1) + "\n");
+	}
+
+	//------------------------------------------------------------------------------------- saveValue
+	public void saveValue(BufferedWriter writer, String valueName, long value) throws IOException
+	{
+		writer.write(valueName + "=" + String.valueOf(value) + "\n");
 	}
 
 }

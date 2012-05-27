@@ -32,6 +32,7 @@ import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 
 import fr.crafter.tickleman.realplugin.RealLocation;
+import fr.crafter.tickleman.realplugin.RealPlayer;
 
 //############################################################################## RealStatsListeners
 public class RealStatsListeners implements Listener
@@ -70,13 +71,26 @@ public class RealStatsListeners implements Listener
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onEntityDamage(EntityDamageEvent event)
 	{
+		// hit
 		if (event instanceof EntityDamageByEntityEvent) {
 			EntityDamageByEntityEvent finalEvent = (EntityDamageByEntityEvent)event;
 			if (finalEvent.getDamager() instanceof Player) {
 				Entity entity = event.getEntity();
-				Player player = (Player)finalEvent.getDamager();
+				Player player = (Player) finalEvent.getDamager();
 				lastAttacker.put(entity, player);
 				plugin.getPlayerStats(player.getName()).increment(RealPlayerStats.HIT, entity);
+			}
+		}
+		// fall
+		if (
+			event.getCause().equals(EntityDamageEvent.DamageCause.FALL)
+			&& event.getEntity() instanceof Player
+		) {
+			Player player = (Player) event.getEntity();
+			if (!RealPlayer.getGodMode(player)) {
+				plugin.getPlayerStats(player.getName()).increment(
+					RealPlayerStats.FALL, event.getDamage()
+				);
 			}
 		}
 	}
