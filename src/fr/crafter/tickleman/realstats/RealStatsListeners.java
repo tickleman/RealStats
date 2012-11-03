@@ -225,12 +225,14 @@ public class RealStatsListeners implements Listener
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onVehicleEnter(VehicleEnterEvent event)
 	{
-		Player player = (Player)event.getEntered();
-		if (player instanceof Player) {
-			if (event.getVehicle() instanceof Boat) {
-				plugin.setPlayerMovingType(player, RealPlayerStats.MOVING_BOAT);
-			} else if (event.getVehicle() instanceof Minecart) {
-				plugin.setPlayerMovingType(player, RealPlayerStats.MOVING_CART);
+		if (event.getEntered().getClass().getSimpleName().equals("CraftPlayer")) {
+			Player player = (Player)event.getEntered();
+			if (player instanceof Player) {
+				if (event.getVehicle() instanceof Boat) {
+					plugin.setPlayerMovingType(player, RealPlayerStats.MOVING_BOAT);
+				} else if (event.getVehicle() instanceof Minecart) {
+					plugin.setPlayerMovingType(player, RealPlayerStats.MOVING_CART);
+				}
 			}
 		}
 	}
@@ -239,9 +241,11 @@ public class RealStatsListeners implements Listener
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onVehicleExit(VehicleExitEvent event)
 	{
-		Player player = (Player)event.getExited();
-		if (player instanceof Player) {
-			plugin.setPlayerMovingType(player, RealPlayerStats.MOVING_WALK);
+		if (event.getExited().getClass().getSimpleName().equals("CraftPlayer")) {
+			Player player = (Player)event.getExited();
+			if (player instanceof Player) {
+				plugin.setPlayerMovingType(player, RealPlayerStats.MOVING_WALK);
+			}
 		}
 	}
 

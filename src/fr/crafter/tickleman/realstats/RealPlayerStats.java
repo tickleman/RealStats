@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.logging.Level;
 
 import org.bukkit.block.Block;
+import org.bukkit.entity.Bat;
 import org.bukkit.entity.Blaze;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.CaveSpider;
@@ -38,6 +39,9 @@ import org.bukkit.entity.Spider;
 import org.bukkit.entity.Squid;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.Villager;
+import org.bukkit.entity.Witch;
+import org.bukkit.entity.Wither;
+import org.bukkit.entity.WitherSkull;
 import org.bukkit.entity.Wolf;
 import org.bukkit.entity.Zombie;
 
@@ -65,7 +69,7 @@ public class RealPlayerStats
 	public static final int MOVING_SPRINT = 4;
 	public static final int MOVING_WALK   = 5;
 
-	public static final int CREATURES_COUNT = 28;
+	public static final int CREATURES_COUNT = 32;
 	public static final int VEHICLES_COUNT  = 6;
 
 	private boolean mustSave = false;
@@ -158,6 +162,11 @@ public class RealPlayerStats
 		if (entity instanceof Ocelot)      return 25;
 		if (entity instanceof Snowman)     return 26;
 		if (entity instanceof EnderDragonPart) return 27;
+
+		if (entity instanceof Witch)       return 28;
+		if (entity instanceof Bat)         return 29;
+		if (entity instanceof Wither)      return 30;
+		if (entity instanceof WitherSkull) return 31;
 
 		System.out.println("[SEVERE] RealStats unknown creature class " + entity.getClass().getSimpleName());
 
